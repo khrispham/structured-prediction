@@ -1,0 +1,115 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Structured Prediction Report}
+\author{Khris Pham}
+\date{March 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Structured Prediction for Sequence Tagging}
+
+\subsection{Overview}
+
+This report explores sequence tagging in natural language processing using two classes of models: Hidden Markov Models (HMMs) and Conditional Random Fields (CRFs). The goal is to evaluate how different modeling assumptions—generative vs. discriminative, unigram vs. bigram structure, and supervised vs. semi-supervised training—affect tagging performance, generalization to unseen words, and overall model behavior.
+
+\subsection{Hidden Markov Models}
+
+\subsubsection{Model Behavior and Training}
+
+I implemented a bigram HMM trained using the forward-backward (EM) algorithm, with optional semi-supervised learning using unlabeled data. Performance was evaluated using cross-entropy and tagging accuracy.
+
+Incorporating unlabeled data reduced cross-entropy substantially (from 10.8059 to 9.6054 nats), indicating improved ability to model the distribution of observed sequences. However, this did not translate into improved tagging accuracy. Overall accuracy decreased from 90.455\% to 88.283\%, although performance on novel (out-of-vocabulary) words improved slightly (24.858\% to 26.684\%).
+
+This reflects a common tradeoff in semi-supervised learning: additional unlabeled data improves likelihood-based metrics but may not align with task-specific objectives such as tagging accuracy.
+
+\subsubsection{Effect of Unlabeled Data}
+
+Unlabeled data provides additional contextual information, allowing the model to better estimate transition probabilities through co-occurrence patterns. This reduces variance and improves generalization, particularly for rare and unseen words.
+
+However, excessive reliance on unlabeled data can introduce bias. The model may overfit to distributional patterns in the raw corpus, pulling parameters away from the supervised signal. Additionally, unknown-word handling becomes less precise, as EM tends to smooth these cases toward majority tag distributions.
+
+\subsubsection{Model Variants}
+
+\paragraph{Bigram vs. Unigram HMM}
+
+The bigram HMM consistently outperformed the unigram variant:
+
+\begin{itemize}
+    \item Bigram accuracy: 90.455\%
+    \item Unigram accuracy: 89.294\%
+\end{itemize}
+
+The improvement stems from the bigram model’s ability to capture tag-to-tag dependencies, which provide important contextual constraints. This is especially beneficial for disambiguation and handling out-of-vocabulary words.
+
+\paragraph{Effect of Smoothing}
+
+I evaluated add-$\lambda$ smoothing with $\lambda \in \{0, 0.1, 1\}$:
+
+\begin{itemize}
+    \item $\lambda = 0.1$ provided the best balance:
+    \begin{itemize}
+        \item Lower cross-entropy (6.9244 nats)
+        \item Slight improvement in accuracy (90.797\%)
+        \item Significant improvement on novel words (33.918\%)
+    \end{itemize}
+    \item $\lambda = 1$ further improved novel word accuracy (42.315\%) but degraded overall accuracy (88.421\%)
+\end{itemize}
+
+These results illustrate the tradeoff between smoothing and model specificity. Moderate smoothing improves robustness, while excessive smoothing reduces discriminative power.
+
+\subsection{Conditional Random Fields}
+
+\subsubsection{Performance Comparison}
+
+The CRF model achieved:
+
+\begin{itemize}
+    \item Cross-entropy: 0.2564 nats
+    \item Accuracy: 91.027\%
+    \item Novel word accuracy: 63.567\%
+\end{itemize}
+
+Compared to the HMM:
+
+\begin{itemize}
+    \item Slight improvement in overall accuracy
+    \item Dramatic improvement in handling novel words
+    \item Significantly higher training time (14 minutes vs. 1.5 minutes)
+\end{itemize}
+
+The large difference in cross-entropy arises from the modeling objective. HMMs model the joint distribution $p(x, y)$, which is sensitive to vocabulary size, while CRFs model the conditional distribution $p(y \mid x)$, resulting in much lower loss values.
+
+\subsubsection{Generalization to Novel Words}
+
+CRFs significantly outperform HMMs on unseen words. This is because CRFs leverage feature-based representations, allowing them to generalize beyond memorized emission probabilities. In contrast, HMMs rely heavily on observed word-tag pairs, making them less robust in out-of-vocabulary settings.
+
+\subsubsection{Effect of Unlabeled Data}
+
+Adding unlabeled data to CRF training produced only marginal improvements:
+
+\begin{itemize}
+    \item Accuracy increased from 91.027\% to 91.778\%
+    \item Training time increased substantially
+\end{itemize}
+
+This is expected, as standard CRF training optimizes conditional likelihood using labeled data. Unlabeled data does not directly contribute to the objective unless additional semi-supervised techniques are introduced.
+
+\subsection{Discussion}
+
+These experiments highlight several key insights:
+
+\begin{itemize}
+    \item \textbf{Benefits of structured prediction:} Incorporating sequential dependencies (bigram HMM) significantly improves performance over simpler models.
+    \item \textbf{Generative vs. discriminative tradeoffs:} HMMs provide a principled probabilistic framework but struggle with sparse data, while CRFs achieve better predictive performance through feature-based modeling.
+    \item \textbf{Unlabeled data has nuanced effects:} It improves likelihood-based metrics but does not always improve task performance, especially when model assumptions are mismatched.
+    \item \textbf{Importance of handling OOV words:} The largest performance differences between models arise in their ability to generalize to unseen data.
+\end{itemize}
+
+\subsection{Conclusion}
+
+Overall, CRFs provide stronger performance for sequence tagging tasks, particularly in generalization to novel inputs. However, HMMs remain valuable for understanding probabilistic sequence modeling and the effects of model assumptions such as independence and smoothing. The comparison illustrates how different modeling choices impact both empirical performance and theoretical behavior in structured prediction tasks.
+
+\end{document}

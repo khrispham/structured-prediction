@@ -4,7 +4,7 @@ This project implements probabilistic models for sequence tagging tasks in natur
 
 ## Overview
 
-Sequence tagging is a core problem in NLP, where each token in a sequence (e.g., words in a sentence) is assigned a label such as part-of-speech or named entity tags.
+This project explores sequence tagging by implementing both generative (HMM) and discriminative (CRF) models and comparing their behavior in practice.
 
 In this project, I implemented:
 
