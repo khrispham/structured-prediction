@@ -25,18 +25,23 @@ This project evaluates part-of-speech tagging on endev, measuring accuracy and c
 ## How to Run
 
 ### 1. Train a supervised model
+
 python3 tag.py <dev_data> --model model.pkl --train <supervised_data>
 
 ### 2. Train a semi-supervised model:
+
 python3 tag.py <dev_data> --model <final_model.pkl> --checkpoint <pretrained_model.pkl> --train <training_data>
 
 ### 3. Run HMM-augmented tagging:
+
 python3 tag.py <input_file> --model <model_file.pkl> --train <training_files> 
 
 ### 4. Run tagging
+
 python3 tag.py <input_file> --model model.pkl
 
 ### 5. Evaluate performance
+
 python3 tag.py <input_file> --model model.pkl --loss viterbi_error
 
 ## Notes
